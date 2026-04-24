@@ -1,10 +1,10 @@
 {
   "uuid": "<APP_UUID>",
-  "name": "APP DEV Template",
-  "description": "Microfirmware Application Template for Atari ST",
+  "name": "Hello, World!",
+  "description": "Hello World microfirmware for SidecarTridge Multi-device",
   "image": "https://placehold.co/256x256/png",
   "tags": [
-    "Sample",
+    "Hello World"
   ],
   "devices": [
     "Atari ST",
@@ -12,7 +12,7 @@
     "Atari MegaST",
     "Atari MegaSTE"
   ],
-  "binary": "https://atarist.sidecartridge.com/<APP_UUID>-<APP_VERSION>.uf2",
+  "binary": "https://atarist.neilrackett.com/<APP_UUID>-<APP_VERSION>.uf2",
   "md5": "<BINARY_MD5_HASH>",
   "version": "<APP_VERSION>"
 }

@@ -10,6 +10,31 @@ if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
     exit 1
 fi
 
+# Increment patch version in root version.txt on every build run
+VERSION_FILE="version.txt"
+if [ ! -f "$VERSION_FILE" ]; then
+    echo "Error: $VERSION_FILE not found."
+    exit 1
+fi
+
+CURRENT_VERSION=$(tr -d '\r\n' < "$VERSION_FILE")
+if [[ "$CURRENT_VERSION" =~ ^([vV]?)([0-9]+)\.([0-9]+)\.([0-9]+)([^0-9].*)?$ ]]; then
+    VERSION_PREFIX="${BASH_REMATCH[1]}"
+    VERSION_MAJOR="${BASH_REMATCH[2]}"
+    VERSION_MINOR="${BASH_REMATCH[3]}"
+    VERSION_PATCH="${BASH_REMATCH[4]}"
+    VERSION_SUFFIX="${BASH_REMATCH[5]}"
+else
+    echo "Error: Invalid version format in $VERSION_FILE: '$CURRENT_VERSION'"
+    echo "Expected format: v<major>.<minor>.<patch> (optional non-numeric suffix allowed)"
+    exit 1
+fi
+
+NEXT_PATCH=$((VERSION_PATCH + 1))
+NEXT_VERSION="${VERSION_PREFIX}${VERSION_MAJOR}.${VERSION_MINOR}.${NEXT_PATCH}${VERSION_SUFFIX}"
+printf "%s\n" "$NEXT_VERSION" > "$VERSION_FILE"
+echo "Version incremented: $CURRENT_VERSION -> $NEXT_VERSION"
+
 # Copy the version.txt to each project
 echo "Copy version.txt to each project"
 cp version.txt rp/

@@ -98,6 +98,9 @@ typedef struct {
   void (*handler)(const char *arg);
 } Command;
 
+typedef void (*TermKeystrokeHandler)(char keystroke);
+typedef void (*TermStartHandler)(void);
+
 void __not_in_flash_func(term_dma_irq_handler_lookup)(void);
 
 void term_init(void);
@@ -131,6 +134,36 @@ void term_clearScreen(void);
  * commands.
  */
 void term_setCommands(const Command *cmds, size_t count);
+
+/**
+ * @brief Registers a custom handler for terminal keystrokes.
+ *
+ * When set, terminal keystrokes are forwarded to this callback instead of the
+ * built-in command-line parser.
+ *
+ * @param handler Callback to process keystrokes, or NULL to restore default
+ * behavior.
+ */
+void term_setKeystrokeHandler(TermKeystrokeHandler handler);
+
+/**
+ * @brief Registers a custom handler for APP_TERMINAL_START events.
+ *
+ * APP_TERMINAL_START is sent by the Atari side when ESC is pressed. If no
+ * handler is registered, the default behavior enters terminal mode.
+ *
+ * @param handler Callback to handle start events, or NULL to restore default
+ * behavior.
+ */
+void term_setStartHandler(TermStartHandler handler);
+
+/**
+ * @brief Enters terminal display mode.
+ *
+ * Initializes terminal rendering mode and switches the Atari side to terminal
+ * command handling.
+ */
+void term_enterMode(void);
 /**
  * @brief Clears the terminal's input buffer.
  *

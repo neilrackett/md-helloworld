@@ -124,6 +124,8 @@ static void cmdUnknown(const char *arg);
 
 // Command table
 static const Command *commands;
+static TermKeystrokeHandler keystrokeHandler = NULL;
+static TermStartHandler startHandler = NULL;
 
 // Number of commands in the table
 static size_t numCommands = 0;
@@ -132,6 +134,21 @@ static size_t numCommands = 0;
 void term_setCommands(const Command *cmds, size_t count) {
   commands = cmds;
   numCommands = count;
+}
+
+void term_setKeystrokeHandler(TermKeystrokeHandler handler) {
+  keystrokeHandler = handler;
+}
+
+void term_setStartHandler(TermStartHandler handler) {
+  startHandler = handler;
+}
+
+void term_enterMode(void) {
+  display_termStart(DISPLAY_TILES_WIDTH, DISPLAY_TILES_HEIGHT);
+  term_clearScreen();
+  SEND_COMMAND_TO_DISPLAY(DISPLAY_COMMAND_TERM);
+  DPRINTF("Send command to display: DISPLAY_COMMAND_TERM\n");
 }
 
 /**
@@ -655,12 +672,13 @@ void __not_in_flash_func(term_loop)() {
     // Handle the command
     switch (protocolSnapshot.command_id) {
       case APP_TERMINAL_START: {
-        display_termStart(DISPLAY_TILES_WIDTH, DISPLAY_TILES_HEIGHT);
-        term_clearScreen();
-        term_printString("Type 'help' for available commands.\n");
-        termInputChar('\n');
-        SEND_COMMAND_TO_DISPLAY(DISPLAY_COMMAND_TERM);
-        DPRINTF("Send command to display: DISPLAY_COMMAND_TERM\n");
+        if (startHandler != NULL) {
+          startHandler();
+        } else {
+          term_enterMode();
+          term_printString("Type 'help' for available commands.\n");
+          termInputChar('\n');
+        }
       } break;
       case APP_TERMINAL_KEYSTROKE: {
         uint16_t *payload = ((uint16_t *)(protocolSnapshot).payload);
@@ -686,7 +704,11 @@ void __not_in_flash_func(term_loop)() {
           DPRINTF("Keystroke: %d. Shift key: %d, Scan code: %d\n", keystroke,
                   shiftKey, scanCode);
         }
-        termInputChar(keystroke);
+        if (keystrokeHandler != NULL) {
+          keystrokeHandler(keystroke);
+        } else {
+          termInputChar(keystroke);
+        }
         break;
       }
       default:
