@@ -2,7 +2,7 @@
   "uuid": "<APP_UUID>",
   "name": "Hello, World!",
   "description": "Hello World microfirmware for SidecarTridge Multi-device",
-  "image": "https://placehold.co/256x256/png",
+  "image": "https://atarist.neilrackett.com/<APP_UUID>.png",
   "tags": [
     "Hello World"
   ],
