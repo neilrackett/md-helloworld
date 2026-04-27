@@ -225,6 +225,16 @@ add_definitions(-DLATEST_RELEASE_URL="${LATEST_RELEASE_URL}")
 if(DEFINED ENV{APP_UUID_KEY} AND NOT "$ENV{APP_UUID_KEY}" STREQUAL "")
     message(STATUS "Using APP_UUID_KEY from environment: $ENV{APP_UUID_KEY}")
     add_definitions(-DCURRENT_APP_UUID_KEY=\"$ENV{APP_UUID_KEY}\")
+elseif(EXISTS "${REPO_ROOT}/uuid.txt")
+    file(READ "${REPO_ROOT}/uuid.txt" APP_UUID_KEY_FROM_FILE_RAW)
+    string(STRIP "${APP_UUID_KEY_FROM_FILE_RAW}" APP_UUID_KEY_FROM_FILE)
+    if(NOT "${APP_UUID_KEY_FROM_FILE}" STREQUAL "")
+        message(STATUS "Using APP_UUID_KEY from uuid.txt: ${APP_UUID_KEY_FROM_FILE}")
+        add_definitions(-DCURRENT_APP_UUID_KEY=\"${APP_UUID_KEY_FROM_FILE}\")
+    else()
+        message(STATUS "uuid.txt is empty. Using default UUID")
+        add_definitions(-DCURRENT_APP_UUID_KEY=\"44444444-4444-4444-8444-444444444444\")
+    endif()
 else()
     message(STATUS "Using default UUID")
     add_definitions(-DCURRENT_APP_UUID_KEY=\"44444444-4444-4444-8444-444444444444\")
@@ -242,11 +252,11 @@ add_definitions(-DPICO_FLASH_ASSUME_CORE0_SAFE=1)
 # Select HTTPS or HTTP downloads of the firmware
 add_definitions(-DAPP_DOWNLOAD_HTTPS=0)
 
-# Remove unused data
-target_link_options(${PROJECT_NAME} PRIVATE
-   "-Wl,--gc-sections"
-   "-Wl,--strip-all"
-)
+# Remove unused data. Keep symbols in debug builds for GDB.
+target_link_options(${PROJECT_NAME} PRIVATE "-Wl,--gc-sections")
+if("${_DEBUG}" STREQUAL "0")
+    target_link_options(${PROJECT_NAME} PRIVATE "-Wl,--strip-all")
+endif()
 
 # Enable clang-tidy (you need to have clang-tidy installed on your system)
 find_program(CLANG_TIDY_EXE NAMES clang-tidy)

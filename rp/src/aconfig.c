@@ -120,8 +120,15 @@ int aconfig_init(const char *currentAppId) {
   }
 
   if (flashAddress == 0) {
+#if defined(_DEBUG) && (_DEBUG != 0)
+    DPRINTF(
+        "DEBUG fallback: configuration lookup not found for app UUID. "
+        "Using first app config sector.\n");
+    flashAddress = (uint32_t)&_config_flash_start;
+#else
     DPRINTF("Configuration flash address not found for the current app\n");
     return ACONFIG_APPKEYLOOKUP_ERROR;
+#endif
   }
 
   DPRINTF("Initializing app settings\n");

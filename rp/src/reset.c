@@ -1,6 +1,12 @@
 #include "reset.h"
 
 void reset_device() {
+#if defined(_DEBUG) && (_DEBUG != 0)
+  DPRINTF(
+      "DEBUG fallback: reset_device requested. Skipping watchdog reboot in "
+      "debug build.\n");
+  return;
+#else
   DPRINTF("Resetting the device\n");
 
   save_and_disable_interrupts();
@@ -12,6 +18,7 @@ void reset_device() {
     DPRINTF("Waiting for the device to reset\n");
   }
   DPRINTF("You should never reach this point\n");
+#endif
 }
 
 void reset_deviceAndEraseFlash() {

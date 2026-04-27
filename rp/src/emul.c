@@ -32,6 +32,7 @@
 #define HELLO_INPUT_ROW (TERM_SCREEN_SIZE_Y - 1)
 #define HELLO_MAX_NAME_LENGTH (TERM_SCREEN_SIZE_X - 1)
 #define HELLO_TEXT_BUFFER_SIZE 96
+#define APP_STARTUP_START_EVENT_GUARD_MS 1200
 
 enum {
   APP_MODE_SETUP = 255  // Setup
@@ -43,6 +44,7 @@ static bool keepActive = true;
 // Should we reset the device, or jump to the booster app?
 // By default, we reset the device.
 static bool resetDeviceAtBoot = true;
+static uint32_t appStartTimestampMs = 0;
 
 static char enteredName[HELLO_MAX_NAME_LENGTH + 1] = {0};
 static size_t enteredNameLength = 0;
@@ -137,21 +139,43 @@ static void appSubmitName(void) {
 
   if (trimmedLength == 0) {
     snprintf(submittedName, sizeof(submittedName), "World");
-    enteredName[0] = '\0';
-    enteredNameLength = 0;
   } else {
     snprintf(submittedName, sizeof(submittedName), "%s", trimmedName);
-    snprintf(enteredName, sizeof(enteredName), "%s", trimmedName);
-    enteredNameLength = trimmedLength;
   }
+
+  // Clear input field after submission while keeping the greeting updated.
+  enteredName[0] = '\0';
+  enteredNameLength = 0;
 
   appRenderGreeting();
   appRenderInputLine();
 }
 
 static void appExitToBooster(void) {
+  uint32_t elapsedSinceStartMs =
+      to_ms_since_boot(get_absolute_time()) - appStartTimestampMs;
+
+  // Ignore very early APP_TERMINAL_START notifications that can occur while the
+  // Atari side is still transitioning into terminal mode.
+  if (elapsedSinceStartMs < APP_STARTUP_START_EVENT_GUARD_MS) {
+    DPRINTF(
+        "Ignoring startup APP_TERMINAL_START (%lu ms < %u ms guard).\n",
+        (unsigned long)elapsedSinceStartMs, APP_STARTUP_START_EVENT_GUARD_MS);
+    return;
+  }
+
+#if defined(_DEBUG) && (_DEBUG != 0)
+  DPRINTF(
+      "DEBUG fallback: ignoring exit-to-booster request to keep debug session "
+      "alive.\n");
+  // Keep running inside the app while debugging, even if an APP_TERMINAL_START
+  // event is received unexpectedly.
+  resetDeviceAtBoot = true;
+  keepActive = true;
+#else
   resetDeviceAtBoot = false;  // Jump to the booster app
   keepActive = false;         // Exit the active loop
+#endif
 }
 
 static void appHandleKeystroke(char keystroke) {
@@ -184,6 +208,7 @@ static void appHandleKeystroke(char keystroke) {
 static void init(void) {
   term_setKeystrokeHandler(appHandleKeystroke);
   term_setStartHandler(appExitToBooster);
+  appStartTimestampMs = to_ms_since_boot(get_absolute_time());
 
   // Enter terminal mode directly when the app starts.
   term_enterMode();
@@ -224,9 +249,16 @@ void emul_start() {
   if (getResetDevice()) {
     reset_device();
   } else {
+#if defined(_DEBUG) && (_DEBUG != 0)
+    DPRINTF(
+        "DEBUG fallback: booster jump requested during exit. Rebooting app "
+        "instead.\n");
+    reset_device();
+#else
     settings_put_integer(aconfig_getContext(), ACONFIG_PARAM_MODE,
                          APP_MODE_SETUP);
     settings_save(aconfig_getContext(), true);
     reset_jump_to_booster();
+#endif
   }
 }

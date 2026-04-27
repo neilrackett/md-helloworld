@@ -31,6 +31,12 @@
  * printed.
  */
 static inline void reset_jump_to_booster(void) {
+#if defined(_DEBUG) && (_DEBUG != 0)
+  DPRINTF(
+      "DEBUG fallback: reset_jump_to_booster requested. Ignoring booster "
+      "jump in debug build.\n");
+  return;
+#else
   // This code jumps to the Booster application at the top of the flash memory.
   // The reason to perform this jump is for performance reasons.
   // It should be placed at the beginning of main() if the SELECT signal or
@@ -48,6 +54,7 @@ static inline void reset_jump_to_booster(void) {
         [vtable] "X"(PPB_BASE + M0PLUS_VTOR_OFFSET)
       :);
   DPRINTF("You should never reach this point\n");
+#endif
 }
 
 /**

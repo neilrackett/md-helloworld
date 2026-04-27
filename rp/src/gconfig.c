@@ -64,8 +64,18 @@ int gconfig_init(const char *currentAppName) {
   // If the settings are not initialized, then we must initialize them with the
   // default values in the Booster application
   if (err < 0) {
+#if defined(_DEBUG) && (_DEBUG != 0)
+    DPRINTF("Global settings not initialized. DEBUG fallback: using defaults.\n");
+    // settings_init() already loaded defaults into gSettingsCtx on this path.
+    // Persist them so subsequent boots don't re-enter the fallback.
+    if (settings_save(&gSettingsCtx, true) < 0) {
+      DPRINTF("DEBUG fallback: failed to persist default global settings.\n");
+    }
+    err = GCONFIG_SUCCESS;
+#else
     DPRINTF("Error initializing settings.\n");
     return GCONFIG_INIT_ERROR;
+#endif
   }
 
   // If the current app as argument is not null, check if the current app is the
@@ -78,6 +88,12 @@ int gconfig_init(const char *currentAppName) {
         settings_find_entry(&gSettingsCtx, PARAM_BOOT_FEATURE);
     if ((entry == NULL) || (entry->value == NULL) ||
         (strcmp(currentAppName, entry->value) != 0)) {
+#if defined(_DEBUG) && (_DEBUG != 0)
+      DPRINTF(
+          "DEBUG fallback: BOOT_FEATURE mismatch (current=%s, stored=%s). "
+          "Continuing without booster jump.\n",
+          currentAppName, (entry != NULL) ? entry->value : "<null>");
+#else
       // If the entry is found but the content is empty, or not equal to the
       // current app name then go to the Booster application
       DPRINTF(
@@ -85,6 +101,7 @@ int gconfig_init(const char *currentAppName) {
           "(%s)\n",
           currentAppName, entry->value);
       return GCONFIG_MISMATCHED_APP;
+#endif
     }
   } else {
     DPRINTF("The current app is not provided as argument. Booster app?\n");

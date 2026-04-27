@@ -1,6 +1,6 @@
 {
   "uuid": "<APP_UUID>",
-  "name": "Hello, World!",
+  "name": "Hello, SidecarT!",
   "description": "Hello World microfirmware for SidecarTridge Multi-device",
   "image": "https://atarist.neilrackett.com/<APP_UUID>.png",
   "tags": [

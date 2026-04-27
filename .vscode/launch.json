@@ -13,19 +13,41 @@
       "gdbPath": "${env:ARM_GDB_PATH}/bin/arm-none-eabi-gdb",
       "device": "RP2040",
       "configFiles": ["interface/cmsis-dap.cfg", "target/rp2040.cfg"],
-      "serverArgs": ["-c", "adapter speed 5000"],
+      "serverArgs": ["-c", "adapter speed 1000"],
       "svdFile": "./pico-sdk/src/rp2040/hardware_regs/rp2040.svd",
-      // "runToEntryPoint": "false",
-      // Work around for stopping at main on restart
-      "postRestartCommands": ["set remotetimeout 5", "break main", "continue"],
+      "runToEntryPoint": "main",
+      "postRestartCommands": ["set remotetimeout 10"],
+      "postLaunchCommands": ["set remotetimeout 10"],
       "searchDir": [
-        // Dynamic OpenOCD path
-        "${env:PICO_OPENOCD_PATH}"
+        // OpenOCD scripts directory (contains interface/*.cfg and target/*.cfg)
+        "/usr/share/openocd/scripts"
       ],
       "showDevDebugOutput": "raw",
       "liveWatch": {
-        "enabled": true,
-        "interval": 500
+        "enabled": false
+      }
+    },
+    {
+      // Attach without re-flashing to observe runtime behavior without launch resets
+      "name": "Hello, Attach (No Reset)!",
+      "cwd": "${workspaceFolder}",
+      "executable": "${command:cmake.launchTargetPath}",
+      "request": "attach",
+      "type": "cortex-debug",
+      "servertype": "openocd",
+      "gdbPath": "${env:ARM_GDB_PATH}/bin/arm-none-eabi-gdb",
+      "device": "RP2040",
+      "configFiles": ["interface/cmsis-dap.cfg", "target/rp2040.cfg"],
+      "serverArgs": ["-c", "adapter speed 1000"],
+      "svdFile": "./pico-sdk/src/rp2040/hardware_regs/rp2040.svd",
+      "postAttachCommands": [
+        "set remotetimeout 10",
+        "continue"
+      ],
+      "searchDir": ["/usr/share/openocd/scripts"],
+      "showDevDebugOutput": "raw",
+      "liveWatch": {
+        "enabled": false
       }
     }
   ]
