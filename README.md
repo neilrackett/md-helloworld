@@ -2,7 +2,7 @@
 
 Every new coding adventure begins with... "Hello, World!"
 
-A simple microfirmware for the SidecarTridge Multi-device for Atari ST by [Neil Rackett](https://x.com/neilrackett)
+A microfirmware for the SidecarTridge Multi-device for Atari ST by [Neil Rackett](https://x.com/neilrackett)
 
 ## License
 
