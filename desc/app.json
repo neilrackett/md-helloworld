@@ -1,8 +1,8 @@
 {
   "uuid": "<APP_UUID>",
   "name": "Hello, SidecarT!",
-  "description": "Hello World microfirmware for SidecarTridge Multi-device",
-  "image": "https://atarist.neilrackett.com/<APP_UUID>.png",
+  "description": "Hello World microfirmware for SidecarTridge Multi-device. For more information, visit <a href=\"https://neilrackett.com/atarist\">neilrackett.com</a>.",
+  "image": "https://downloads.neilrackett.com/md-helloworld/image.webp",
   "tags": [
     "Hello World"
   ],
@@ -12,7 +12,7 @@
     "Atari MegaST",
     "Atari MegaSTE"
   ],
-  "binary": "https://atarist.neilrackett.com/<APP_UUID>-<APP_VERSION>.uf2",
+  "binary": "https://downloads.neilrackett.com/md-helloworld/<APP_UUID>.uf2",
   "md5": "<BINARY_MD5_HASH>",
   "version": "<APP_VERSION>"
 }

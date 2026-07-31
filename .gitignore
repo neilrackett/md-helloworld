@@ -60,3 +60,4 @@ dist/
 .codex
 .claude
 /uuid.txt
+.DS_Store
